@@ -1,11 +1,11 @@
 @file:Suppress("DEPRECATION")
 @file:OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class,
     ExperimentalMaterial3Api::class
 )
 
 package com.example.pr7k.ui.view
 
+import android.annotation.SuppressLint
 import android.media.MediaScannerConnection
 import android.os.Bundle
 import android.os.Environment
@@ -13,17 +13,32 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,22 +84,89 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
 
                 ) {
-                    urlToImage()
-
-
+                    drawerDefaults()
                 }
             }
         }
     }
 }
 
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun urlToImage() {
+fun drawerDefaults() {
+
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+
+        drawerContent = {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxHeight()
+                    .background(Color.Red),
+            ) {
+                Text("Item 1")
+                Text("Item 2")
+                Text("Item 3")
+            }
+        },
 
 
-    var fileDownloaded by remember { mutableStateOf(false) }
+        content = { scaffoldDefaults(drawerState) }
 
-    val coroutineScope = rememberCoroutineScope()
+
+    )
+}
+
+//@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun scaffoldDefaults(drawerState: DrawerState) {
+    val scope = rememberCoroutineScope()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("URL to Image") },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        scope.launch {
+                            drawerState.open()
+                        }
+                    })
+                    {
+                        Icon(
+                            Icons.Filled.Menu, contentDescription =
+                            "Menu"
+                        )
+                    }
+                }
+            )
+        },
+        content = { innerPadding -> urlToImage(Modifier.padding(innerPadding)) },
+        bottomBar = {
+            BottomAppBar {
+
+                IconButton(onClick = {
+
+                })
+                {
+                    Icon(
+                        Icons.Filled.Home, contentDescription =
+                        "Home"
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun urlToImage(modifier: Modifier) {
+
+
     val context = LocalContext.current
 
 
@@ -92,9 +174,14 @@ fun urlToImage() {
         mutableStateOf("https://cdn.shopclues.com/images/thumbnails/79835/320/320/104787525124666394ID1006929615021796911502242942.jpg")
     }
     var text by remember { mutableStateOf("https://www.simplilearn.com/ice9/free_resources_article_thumb/what_is_image_Processing.jpg") }
+
     Column(
         verticalArrangement = Arrangement.SpaceEvenly,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .padding(16.dp)
+
+            .fillMaxHeight(),
     ) {
 
 
@@ -172,4 +259,5 @@ fun urlToImage() {
             Text("Save")
         }
     }
+
 }
