@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 @file:OptIn(
-    ExperimentalMaterial3Api::class
+    ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class
 )
 
 package com.example.pr7k.ui.view
@@ -16,14 +16,17 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerState
@@ -48,12 +51,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.pr7k.ui.theme.PR7KTheme
 import kotlinx.coroutines.Dispatchers
@@ -104,9 +112,10 @@ fun drawerDefaults() {
         drawerContent = {
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
+
                     .fillMaxHeight()
-                    .background(Color.Red),
+                    .width(200.dp)
+                    .background(MaterialTheme.colorScheme.surface),
             ) {
                 Text("Item 1")
                 Text("Item 2")
@@ -121,10 +130,13 @@ fun drawerDefaults() {
     )
 }
 
-//@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun scaffoldDefaults(drawerState: DrawerState) {
     val scope = rememberCoroutineScope()
+
+
+    var navController: NavHostController? = null
 
     Scaffold(
         topBar = {
@@ -145,12 +157,14 @@ fun scaffoldDefaults(drawerState: DrawerState) {
                 }
             )
         },
-        content = { innerPadding -> urlToImage(Modifier.padding(innerPadding)) },
+        content = { innerPadding ->
+            navController = navigation(innerPadding)
+        },
         bottomBar = {
             BottomAppBar {
 
                 IconButton(onClick = {
-
+                    navController?.navigate("urlToImage")
                 })
                 {
                     Icon(
@@ -158,14 +172,56 @@ fun scaffoldDefaults(drawerState: DrawerState) {
                         "Home"
                     )
                 }
+                IconButton(onClick = {
+                    navController?.navigate("second")
+
+                })
+                {
+                    Icon(
+                        Icons.Filled.Star, contentDescription =
+                        "Second"
+                    )
+                }
             }
+
+
         }
     )
+}
+
+
+@Composable
+fun navigation(innerPadding: PaddingValues): NavHostController {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "urlToImage") {
+        composable("urlToImage") { urlToImage(modifier = Modifier.padding(innerPadding)) }
+        composable("second") { second(modifier = Modifier.padding(innerPadding)) }
+    }
+    return navController
+}
+
+@Composable
+fun second(modifier: Modifier) {
+    Column(
+
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally,
+
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxSize(),
+    ) {
+        Text("second")
+    }
+
 }
 
 @Composable
 fun urlToImage(modifier: Modifier) {
 
+    var current by remember {
+        mutableStateOf(1)
+    }
 
     val context = LocalContext.current
 
@@ -181,7 +237,7 @@ fun urlToImage(modifier: Modifier) {
         modifier = modifier
             .padding(16.dp)
 
-            .fillMaxHeight(),
+            .fillMaxSize(),
     ) {
 
 
@@ -190,21 +246,26 @@ fun urlToImage(modifier: Modifier) {
                 Image(
                     painter = rememberAsyncImagePainter(imageURL),
                     contentDescription = null,
-                    modifier = Modifier.size(300.dp)
+                    modifier = Modifier.size(300.dp),
+                    contentScale = ContentScale.Crop
+
                 )
             }
             item {
                 Image(
                     painter = rememberAsyncImagePainter(imageURL),
                     contentDescription = null,
-                    modifier = Modifier.size(300.dp)
+                    modifier = Modifier.size(300.dp),
+                    contentScale = ContentScale.Crop
+
                 )
             }
             item {
                 Image(
                     painter = rememberAsyncImagePainter(imageURL),
                     contentDescription = null,
-                    modifier = Modifier.size(300.dp)
+                    modifier = Modifier.size(300.dp),
+                    contentScale = ContentScale.Crop
                 )
             }
         }
@@ -236,7 +297,8 @@ fun urlToImage(modifier: Modifier) {
                     val url = URL(imageURL).openStream()
                     val outputDir =
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                    val outputFile = File(outputDir, "1.jpg")
+                    val outputFile = File(outputDir, "${current}.jpg")
+                    current++
                     val outputStream = FileOutputStream(outputFile)
                     val buffer = ByteArray(4 * 1024)
                     var bytesRead: Int
