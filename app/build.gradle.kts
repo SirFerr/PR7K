@@ -62,6 +62,8 @@ dependencies {
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+
     implementation("io.coil-kt:coil-compose:2.0.0-rc01")
 
     testImplementation("junit:junit:4.13.2")
