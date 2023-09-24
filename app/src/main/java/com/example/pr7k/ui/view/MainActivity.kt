@@ -295,10 +295,11 @@ fun urlToImage(modifier: Modifier) {
                 ).show()
                 val name = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
                     .format(System.currentTimeMillis())
+                val outputDir =
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                 GlobalScope.launch(Dispatchers.IO) {
                     val url = URL(imageURL).openStream()
-                    val outputDir =
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+
                     val outputFile = File(outputDir, "${name}.jpg")
                     val outputStream = FileOutputStream(outputFile)
                     val buffer = ByteArray(4 * 1024)
@@ -315,6 +316,13 @@ fun urlToImage(modifier: Modifier) {
                             null,
                             null
                         )
+                    }
+                    GlobalScope.launch(Dispatchers.Main) {
+                        Toast.makeText(
+                            context,
+                            "image saved in ${outputDir}${name}.jpg",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
 
