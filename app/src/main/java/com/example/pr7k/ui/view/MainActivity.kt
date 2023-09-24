@@ -1,6 +1,7 @@
 @file:Suppress("DEPRECATION")
 @file:OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class
+    ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class
 )
 
 package com.example.pr7k.ui.view
@@ -17,12 +18,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
@@ -64,6 +67,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.pr7k.ui.theme.PR7KTheme
+import com.example.pr7k.ui.view.MainActivity.TextStyles.testTextStyle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -71,6 +75,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     object TextStyles {
@@ -109,17 +115,25 @@ fun drawerDefaults() {
     ModalNavigationDrawer(
         drawerState = drawerState,
 
+
         drawerContent = {
-            Column(
+            Row(
                 modifier = Modifier
 
-                    .fillMaxHeight()
-                    .width(200.dp)
-                    .background(MaterialTheme.colorScheme.surface),
+                    .fillMaxSize(),
             ) {
-                Text("Item 1")
-                Text("Item 2")
-                Text("Item 3")
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(250.dp)
+                        .background(MaterialTheme.colorScheme.surface),
+
+                    ) {
+                    for (i in 0..4)
+                        Text("Item ${i}")
+
+                }
+
             }
         },
 
@@ -182,6 +196,8 @@ fun scaffoldDefaults(drawerState: DrawerState) {
                         "Second"
                     )
                 }
+
+
             }
 
 
@@ -210,18 +226,15 @@ fun second(modifier: Modifier) {
         modifier = modifier
             .padding(16.dp)
             .fillMaxSize(),
-    ) {
-        Text("second")
+
+        ) {
+        Text(style = testTextStyle, text = "Shillo Sergey IKBO-25-21")
     }
 
 }
 
 @Composable
 fun urlToImage(modifier: Modifier) {
-
-    var current by remember {
-        mutableStateOf(1)
-    }
 
     val context = LocalContext.current
 
@@ -242,36 +255,23 @@ fun urlToImage(modifier: Modifier) {
 
 
         LazyRow {
-            item {
-                Image(
-                    painter = rememberAsyncImagePainter(imageURL),
-                    contentDescription = null,
-                    modifier = Modifier.size(300.dp),
-                    contentScale = ContentScale.Crop
 
-                )
-            }
-            item {
-                Image(
-                    painter = rememberAsyncImagePainter(imageURL),
-                    contentDescription = null,
-                    modifier = Modifier.size(300.dp),
-                    contentScale = ContentScale.Crop
+            for (i in 0..4)
+                item {
+                    Image(
+                        painter = rememberAsyncImagePainter(imageURL),
+                        contentDescription = null,
+                        modifier = Modifier.size(300.dp),
+                        contentScale = ContentScale.Crop
 
-                )
-            }
-            item {
-                Image(
-                    painter = rememberAsyncImagePainter(imageURL),
-                    contentDescription = null,
-                    modifier = Modifier.size(300.dp),
-                    contentScale = ContentScale.Crop
-                )
-            }
+                    )
+                }
+
         }
 
         TextField(
             value = text,
+            shape = RoundedCornerShape(percent = 10),
             onValueChange = { text = it },
             label = { Text("Url") },
             singleLine = true
@@ -293,12 +293,13 @@ fun urlToImage(modifier: Modifier) {
                     "Please wait, it may take a few minutes...",
                     Toast.LENGTH_SHORT
                 ).show()
+                val name = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
+                    .format(System.currentTimeMillis())
                 GlobalScope.launch(Dispatchers.IO) {
                     val url = URL(imageURL).openStream()
                     val outputDir =
                         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                    val outputFile = File(outputDir, "${current}.jpg")
-                    current++
+                    val outputFile = File(outputDir, "${name}.jpg")
                     val outputStream = FileOutputStream(outputFile)
                     val buffer = ByteArray(4 * 1024)
                     var bytesRead: Int
