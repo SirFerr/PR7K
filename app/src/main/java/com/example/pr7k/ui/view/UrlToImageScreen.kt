@@ -2,9 +2,6 @@
 
 package com.example.pr7k.ui.view
 
-import android.media.MediaScannerConnection
-import android.os.Environment
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,16 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import coil.compose.rememberAsyncImagePainter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
-import java.net.URL
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @Composable
 fun urlToImage(modifier: Modifier) {
@@ -93,43 +86,23 @@ fun urlToImage(modifier: Modifier) {
 
         Button(
             onClick = {
-                Toast.makeText(
-                    context,
-                    "Please wait, it may take a few minutes...",
-                    Toast.LENGTH_SHORT
-                ).show()
-                val name = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
-                    .format(System.currentTimeMillis())
-                val outputDir =
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                GlobalScope.launch(Dispatchers.IO) {
-                    val url = URL(imageURL).openStream()
+                val workManager = WorkManager.getInstance(context)
 
-                    val outputFile = File(outputDir, "${name}.jpg")
-                    val outputStream = FileOutputStream(outputFile)
-                    val buffer = ByteArray(4 * 1024)
-                    var bytesRead: Int
-                    while (url.read(buffer).also { bytesRead = it } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                    }
-                    url.close()
-                    outputStream.close()
-                    withContext(Dispatchers.Main) {
-                        MediaScannerConnection.scanFile(
-                            context,
-                            arrayOf(outputFile.toString()),
-                            null,
-                            null
-                        )
-                    }
-                    GlobalScope.launch(Dispatchers.Main) {
-                        Toast.makeText(
-                            context,
-                            "image saved in ${outputDir}${name}.jpg",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+
+                val inputData = Data.Builder()
+                    .putString("image_url", imageURL)
+                    .build()
+
+                val downloadImageWorkRequest =
+                    OneTimeWorkRequestBuilder<ImageDownloadWorker>()
+                        .setInputData(inputData)
+                        .setConstraints(constraints)
+                        .build()
+
+                workManager.enqueue(downloadImageWorkRequest)
 
             }) {
             Text("Save")
