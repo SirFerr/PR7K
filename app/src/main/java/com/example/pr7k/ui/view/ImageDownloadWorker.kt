@@ -37,7 +37,6 @@ class ImageDownloadWorker(context: Context, params: WorkerParameters) :
             url.close()
             outputStream.close()
 
-            // Trigger media scan
             MediaScannerConnection.scanFile(
                 applicationContext,
                 arrayOf(outputFile.toString()),
